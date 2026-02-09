@@ -1,23 +1,698 @@
-.bubble {
-  position: absolute;
-  cursor: text;              /* nicht move */
-  padding: 28px 18px 12px;   /* oben Platz für Handle */
-  /* rest wie gehabt */
-}
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Interaktives Arbeitsblatt – Annotator</title>
+  <style>
+    :root{
+      --bg:#f4f7f6; --fg:#1f2a33; --muted:#6b7b88; --card:#ffffff;
+      --accent:#27ae60; --line:#d7dde2;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:var(--bg); color:var(--fg);
+    }
+    header{
+      padding:14px 18px; background:#2c3e50; color:#fff; display:flex; gap:12px; align-items:center; flex-wrap:wrap;
+    }
+    header h1{font-size:16px; margin:0; font-weight:600}
+    .bar{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    .btn{
+      border:1px solid rgba(255,255,255,.25);
+      background:rgba(255,255,255,.12);
+      color:#fff; padding:8px 10px; border-radius:10px; cursor:pointer;
+      font-weight:600; font-size:13px;
+    }
+    .btn:hover{background:rgba(255,255,255,.18)}
+    .btn.secondary{border-color:rgba(255,255,255,.18); background:rgba(0,0,0,.08)}
+    .btn.danger{border-color:rgba(255,255,255,.25); background:rgba(231,76,60,.20)}
+    .btn:disabled{opacity:.45; cursor:not-allowed}
 
-.drag-handle{
-  position:absolute;
-  top:0;
-  left:0;
-  right:0;
-  height:24px;
-  border-bottom:1px solid #000;
-  border-radius:18px 18px 0 0;
-  cursor: move;
-  background: rgba(0,0,0,0.05);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:12px;
-  user-select:none;
-}
+    main{padding:14px; max-width:1200px; margin:0 auto;}
+    .layout{display:grid; grid-template-columns: 320px 1fr; gap:14px}
+    @media (max-width: 980px){ .layout{grid-template-columns:1fr} }
+
+    .panel{
+      background:var(--card); border:1px solid var(--line); border-radius:16px; padding:12px;
+      box-shadow:0 2px 8px rgba(0,0,0,.04);
+    }
+    .panel h2{font-size:14px; margin:0 0 10px 0}
+    label{font-size:12px; color:var(--muted); display:block; margin-top:10px}
+    input[type="file"]{width:100%}
+    input, select{
+      width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:12px;
+      font-size:13px; background:#fff;
+    }
+    .row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    .hint{font-size:12px; color:var(--muted); line-height:1.35; margin-top:10px}
+    .tiny{font-size:11px; color:var(--muted)}
+    .hr{height:1px; background:var(--line); margin:12px 0}
+
+    /* Workspace */
+    .workspaceWrap{
+      background:var(--card); border:1px solid var(--line); border-radius:16px; padding:10px;
+      box-shadow:0 2px 8px rgba(0,0,0,.04);
+    }
+    .workspaceBar{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:6px 6px 10px 6px;
+      border-bottom:1px solid var(--line);
+    }
+    .chip{
+      padding:6px 10px; background:#eef3f0; border:1px solid #d6e8dd; border-radius:999px;
+      font-size:12px; color:#1f2a33;
+    }
+    .workspace{
+      position:relative;
+      width:100%;
+      height: calc(100vh - 220px);
+      min-height:520px;
+      overflow:auto;
+      background: repeating-conic-gradient(from 45deg, #fafafa 0% 25%, #f5f5f5 0% 50%) 50% / 20px 20px;
+      border-radius:12px;
+      padding:14px;
+    }
+    .stage{
+      position:relative;
+      display:inline-block;
+      transform-origin: top left;
+      /* stage size is set dynamically */
+    }
+    canvas#pageCanvas{
+      display:block;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:10px;
+    }
+
+    /* Text boxes overlay */
+    .tbox{
+      position:absolute;
+      min-width:60px;
+      min-height:28px;
+      border:1px dashed rgba(39,174,96,.7);
+      border-radius:10px;
+      padding:6px 8px;
+      background:rgba(255,255,255,.80);
+      backdrop-filter: blur(2px);
+      cursor:move;
+      user-select:none;
+    }
+    .tbox.selected{
+      border-style:solid;
+      box-shadow:0 0 0 3px rgba(39,174,96,.20);
+    }
+    .tbox textarea{
+      width:100%; height:100%;
+      border:none; outline:none; resize:none;
+      background:transparent;
+      font:inherit;
+      color:inherit;
+      padding:0; margin:0;
+      user-select:text;
+    }
+    .handle{
+      position:absolute;
+      width:14px; height:14px;
+      right:-7px; bottom:-7px;
+      background:var(--accent);
+      border-radius:6px;
+      border:2px solid #fff;
+      cursor:nwse-resize;
+    }
+    .tbox .toolbar{
+      position:absolute;
+      left:8px; top:-34px;
+      display:none;
+      gap:6px;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:6px;
+      box-shadow:0 6px 18px rgba(0,0,0,.10);
+    }
+    .tbox.selected .toolbar{display:flex}
+    .tmini{
+      font-size:12px;
+      border:1px solid var(--line);
+      background:#fff;
+      padding:6px 8px;
+      border-radius:10px;
+      cursor:pointer;
+    }
+    .tmini:hover{background:#f6f8fa}
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>Arbeitsblatt-Annotator (Bild/PDF → Textfelder → Export als JPEG)</h1>
+  <div class="bar">
+    <button class="btn" id="btnAddText" disabled>+ Textfeld</button>
+    <button class="btn secondary" id="btnExportJpg" disabled>Export JPEG</button>
+    <button class="btn danger" id="btnClear" disabled>Alles löschen</button>
+  </div>
+</header>
+
+<main>
+  <div class="layout">
+    <section class="panel">
+      <h2>Datei laden</h2>
+
+      <label>Datei (JPEG/PNG oder PDF)</label>
+      <input type="file" id="fileInput" accept="image/*,application/pdf" />
+
+      <div class="row">
+        <div>
+          <label>PDF-Seite</label>
+          <input type="number" id="pdfPage" min="1" value="1" disabled />
+        </div>
+        <div>
+          <label>Zoom (Anzeige)</label>
+          <select id="zoomSel" disabled>
+            <option value="0.75">75%</option>
+            <option value="1" selected>100%</option>
+            <option value="1.25">125%</option>
+            <option value="1.5">150%</option>
+            <option value="2">200%</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <h2>Textfeld-Format</h2>
+      <div class="row">
+        <div>
+          <label>Schriftgröße (px)</label>
+          <input type="number" id="fontSize" min="10" max="60" value="16" />
+        </div>
+        <div>
+          <label>Schriftfarbe</label>
+          <input type="color" id="fontColor" value="#111111" />
+        </div>
+      </div>
+
+      <label>Hintergrund der Box</label>
+      <input type="color" id="boxBg" value="#ffffff" />
+
+      <label>Deckkraft Box (0–1)</label>
+      <input type="number" id="boxAlpha" min="0" max="1" step="0.05" value="0.80" />
+
+      <div class="hint">
+        Bedienung:
+        <ul style="margin:8px 0 0 18px; padding:0">
+          <li>„+ Textfeld“ → klicken → Box erscheint. Doppelklick → Text bearbeiten.</li>
+          <li>Ziehen = verschieben. Ecke unten rechts = Größe ändern.</li>
+          <li>Box anklicken → kleines Menü: Duplizieren / Löschen.</li>
+          <li>PDF: Seite einstellen → Enter → rendern.</li>
+        </ul>
+      </div>
+
+      <div class="tiny" style="margin-top:10px">
+        Hinweis: Export ist ein <b>JPEG</b> mit eingebrannten Anmerkungen (für AirDrop/Abgabe).
+      </div>
+    </section>
+
+    <section class="workspaceWrap">
+      <div class="workspaceBar">
+        <span class="chip" id="statusChip">Keine Datei geladen</span>
+        <span class="chip" id="sizeChip">–</span>
+      </div>
+      <div class="workspace" id="workspace">
+        <div class="stage" id="stage">
+          <canvas id="pageCanvas"></canvas>
+          <!-- Text boxes are inserted here (absolute positioned) -->
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- PDF.js (CDN). Wenn du offline willst: lokal hosten. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.js"></script>
+<script>
+(() => {
+  const fileInput = document.getElementById('fileInput');
+  const pdfPageInput = document.getElementById('pdfPage');
+  const zoomSel = document.getElementById('zoomSel');
+
+  const btnAddText = document.getElementById('btnAddText');
+  const btnExportJpg = document.getElementById('btnExportJpg');
+  const btnClear = document.getElementById('btnClear');
+
+  const statusChip = document.getElementById('statusChip');
+  const sizeChip = document.getElementById('sizeChip');
+
+  const fontSizeEl = document.getElementById('fontSize');
+  const fontColorEl = document.getElementById('fontColor');
+  const boxBgEl = document.getElementById('boxBg');
+  const boxAlphaEl = document.getElementById('boxAlpha');
+
+  const stage = document.getElementById('stage');
+  const canvas = document.getElementById('pageCanvas');
+  const ctx = canvas.getContext('2d', { alpha: false });
+
+  const workspace = document.getElementById('workspace');
+
+  let current = {
+    kind: null,           // 'image' | 'pdf'
+    fileName: null,
+    image: null,          // HTMLImageElement
+    pdf: null,            // pdfjs doc
+    pdfPage: 1,
+    pdfScale: 1,
+    baseWidth: 0,
+    baseHeight: 0
+  };
+
+  // Configure PDF.js worker
+  if (window['pdfjsLib']) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.js";
+  }
+
+  function setEnabled(enabled){
+    btnAddText.disabled = !enabled;
+    btnExportJpg.disabled = !enabled;
+    btnClear.disabled = !enabled;
+    zoomSel.disabled = !enabled;
+  }
+
+  function clearTextBoxes(){
+    [...stage.querySelectorAll('.tbox')].forEach(el => el.remove());
+  }
+
+  function setStageSize(w, h){
+    current.baseWidth = w;
+    current.baseHeight = h;
+    canvas.width = w;
+    canvas.height = h;
+    stage.style.width = w + 'px';
+    stage.style.height = h + 'px';
+    sizeChip.textContent = `${w} × ${h}px`;
+  }
+
+  function applyZoom(){
+    const z = parseFloat(zoomSel.value || '1');
+    stage.style.transform = `scale(${z})`;
+    // workspace scroll still works; scale only visual
+  }
+
+  zoomSel.addEventListener('change', applyZoom);
+
+  async function loadImage(file){
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.decoding = 'async';
+    img.onload = () => {
+      current.kind = 'image';
+      current.fileName = file.name.replace(/\.[^.]+$/, '');
+      current.image = img;
+      current.pdf = null;
+
+      setStageSize(img.naturalWidth, img.naturalHeight);
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.drawImage(img, 0, 0);
+
+      statusChip.textContent = `Bild: ${file.name}`;
+      pdfPageInput.disabled = true;
+      setEnabled(true);
+      applyZoom();
+      clearTextBoxes();
+      URL.revokeObjectURL(url);
+    };
+    img.onerror = () => {
+      statusChip.textContent = 'Fehler beim Laden des Bildes';
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  }
+
+  async function renderPdfPage(pageNumber){
+    if (!current.pdf) return;
+
+    const page = await current.pdf.getPage(pageNumber);
+    // Render at 1.5 for decent quality; you can change if you want larger export
+    const viewport = page.getViewport({ scale: 1.6 });
+    setStageSize(Math.floor(viewport.width), Math.floor(viewport.height));
+
+    const renderContext = { canvasContext: ctx, viewport };
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0,0,canvas.width, canvas.height);
+    await page.render(renderContext).promise;
+
+    statusChip.textContent = `PDF: ${current.fileName} (Seite ${pageNumber}/${current.pdf.numPages})`;
+    applyZoom();
+  }
+
+  async function loadPdf(file){
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+
+    current.kind = 'pdf';
+    current.fileName = file.name.replace(/\.[^.]+$/, '');
+    current.pdf = pdf;
+    current.image = null;
+
+    pdfPageInput.disabled = false;
+    pdfPageInput.max = pdf.numPages;
+    pdfPageInput.value = 1;
+    current.pdfPage = 1;
+
+    setEnabled(true);
+    clearTextBoxes();
+    await renderPdfPage(1);
+  }
+
+  fileInput.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setEnabled(false);
+    statusChip.textContent = 'Lade…';
+
+    try{
+      if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')){
+        await loadPdf(file);
+      } else if (file.type.startsWith('image/')){
+        await loadImage(file);
+      } else {
+        statusChip.textContent = 'Dateityp nicht unterstützt (nur Bild oder PDF)';
+      }
+    } catch(err){
+      console.error(err);
+      statusChip.textContent = 'Fehler beim Laden';
+    }
+  });
+
+  pdfPageInput.addEventListener('change', async () => {
+    const p = Math.max(1, Math.min(parseInt(pdfPageInput.value || '1', 10), current.pdf?.numPages || 1));
+    pdfPageInput.value = p;
+    current.pdfPage = p;
+    clearTextBoxes(); // optional: Kommentare pro Seite speichern? (hier: reset)
+    await renderPdfPage(p);
+  });
+
+  // Textbox creation
+  function createTextBox(x, y, w=220, h=70, text=''){
+    const box = document.createElement('div');
+    box.className = 'tbox';
+    box.style.left = `${x}px`;
+    box.style.top = `${y}px`;
+    box.style.width = `${w}px`;
+    box.style.height = `${h}px`;
+
+    // style from settings
+    const fs = parseInt(fontSizeEl.value || '16', 10);
+    const fc = fontColorEl.value || '#111111';
+    const bg = boxBgEl.value || '#ffffff';
+    const a = Math.max(0, Math.min(1, parseFloat(boxAlphaEl.value || '0.8')));
+    box.style.color = fc;
+    box.style.fontSize = fs + 'px';
+    box.style.background = hexToRgba(bg, a);
+
+    const toolbar = document.createElement('div');
+    toolbar.className = 'toolbar';
+
+    const btnDup = document.createElement('button');
+    btnDup.type = 'button';
+    btnDup.className = 'tmini';
+    btnDup.textContent = 'Duplizieren';
+    btnDup.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const r = box.getBoundingClientRect();
+      const st = stage.getBoundingClientRect();
+      const nx = (r.left - st.left) + 20;
+      const ny = (r.top - st.top) + 20;
+      const nb = createTextBox(nx, ny, box.offsetWidth, box.offsetHeight, textarea.value);
+      stage.appendChild(nb);
+      selectBox(nb);
+    });
+
+    const btnDel = document.createElement('button');
+    btnDel.type = 'button';
+    btnDel.className = 'tmini';
+    btnDel.textContent = 'Löschen';
+    btnDel.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      box.remove();
+    });
+
+    toolbar.appendChild(btnDup);
+    toolbar.appendChild(btnDel);
+
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.placeholder = 'Text…';
+    textarea.spellcheck = false;
+
+    // Start in "view" mode (disable pointer events on textarea until edit)
+    textarea.style.pointerEvents = 'none';
+
+    // edit on double click
+    box.addEventListener('dblclick', (ev) => {
+      ev.stopPropagation();
+      textarea.style.pointerEvents = 'auto';
+      textarea.focus();
+      textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    });
+    textarea.addEventListener('blur', () => {
+      textarea.style.pointerEvents = 'none';
+    });
+
+    // resize handle
+    const handle = document.createElement('div');
+    handle.className = 'handle';
+
+    box.appendChild(toolbar);
+    box.appendChild(textarea);
+    box.appendChild(handle);
+
+    // Select logic
+    box.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      selectBox(box);
+    });
+
+    // Drag move
+    let drag = null;
+    box.addEventListener('pointerdown', (e) => {
+      if (e.target === handle) return; // resizing handled separately
+      if (textarea.style.pointerEvents === 'auto') return; // editing
+      drag = {
+        startX: e.clientX,
+        startY: e.clientY,
+        origLeft: parseFloat(box.style.left),
+        origTop: parseFloat(box.style.top)
+      };
+      box.setPointerCapture(e.pointerId);
+    });
+    box.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      const dx = e.clientX - drag.startX;
+      const dy = e.clientY - drag.startY;
+      const nx = clamp(drag.origLeft + dx, 0, current.baseWidth - box.offsetWidth);
+      const ny = clamp(drag.origTop + dy, 0, current.baseHeight - box.offsetHeight);
+      box.style.left = nx + 'px';
+      box.style.top = ny + 'px';
+    });
+    box.addEventListener('pointerup', () => drag = null);
+    box.addEventListener('pointercancel', () => drag = null);
+
+    // Resize
+    let resize = null;
+    handle.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      resize = {
+        startX: e.clientX,
+        startY: e.clientY,
+        origW: box.offsetWidth,
+        origH: box.offsetHeight
+      };
+      handle.setPointerCapture(e.pointerId);
+    });
+    handle.addEventListener('pointermove', (e) => {
+      if (!resize) return;
+      const dx = e.clientX - resize.startX;
+      const dy = e.clientY - resize.startY;
+      const nw = clamp(resize.origW + dx, 60, current.baseWidth - parseFloat(box.style.left));
+      const nh = clamp(resize.origH + dy, 28, current.baseHeight - parseFloat(box.style.top));
+      box.style.width = nw + 'px';
+      box.style.height = nh + 'px';
+    });
+    handle.addEventListener('pointerup', () => resize = null);
+    handle.addEventListener('pointercancel', () => resize = null);
+
+    return box;
+  }
+
+  function selectBox(box){
+    [...stage.querySelectorAll('.tbox')].forEach(b => b.classList.remove('selected'));
+    if (box) box.classList.add('selected');
+  }
+  stage.addEventListener('pointerdown', () => selectBox(null));
+
+  btnAddText.addEventListener('click', () => {
+    if (!current.baseWidth) return;
+    // Place near top-left visible area in workspace
+    const z = parseFloat(zoomSel.value || '1');
+    const wr = workspace.getBoundingClientRect();
+    const st = stage.getBoundingClientRect();
+    const vx = (workspace.scrollLeft) / z;
+    const vy = (workspace.scrollTop) / z;
+
+    const x = clamp(vx + 40, 0, current.baseWidth - 240);
+    const y = clamp(vy + 40, 0, current.baseHeight - 90);
+
+    const box = createTextBox(x, y);
+    stage.appendChild(box);
+    selectBox(box);
+  });
+
+  btnClear.addEventListener('click', async () => {
+    clearTextBoxes();
+    // keep page as is
+  });
+
+  // Export: draw canvas + all textboxes onto offscreen canvas, then download JPEG
+  btnExportJpg.addEventListener('click', () => {
+    if (!current.baseWidth) return;
+
+    const out = document.createElement('canvas');
+    out.width = current.baseWidth;
+    out.height = current.baseHeight;
+    const octx = out.getContext('2d', { alpha: false });
+
+    // base page
+    octx.fillStyle = "#ffffff";
+    octx.fillRect(0,0,out.width,out.height);
+    octx.drawImage(canvas, 0, 0);
+
+    // textboxes
+    const boxes = [...stage.querySelectorAll('.tbox')];
+    for (const box of boxes){
+      const x = parseFloat(box.style.left);
+      const y = parseFloat(box.style.top);
+      const w = box.offsetWidth;
+      const h = box.offsetHeight;
+
+      const style = getComputedStyle(box);
+      // background
+      octx.fillStyle = style.backgroundColor || 'rgba(255,255,255,0.8)';
+      roundRect(octx, x, y, w, h, 10);
+      octx.fill();
+
+      // border (subtle)
+      octx.strokeStyle = 'rgba(39,174,96,0.65)';
+      octx.lineWidth = 2;
+      roundRect(octx, x, y, w, h, 10);
+      octx.stroke();
+
+      // text
+      const ta = box.querySelector('textarea');
+      const text = ta?.value || '';
+      const fs = parseInt(style.fontSize || '16', 10);
+      octx.fillStyle = style.color || '#111';
+      octx.font = `${fs}px system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif`;
+      octx.textBaseline = 'top';
+
+      const paddingX = 8, paddingY = 6;
+      const maxWidth = w - paddingX*2;
+      const lines = wrapText(octx, text, maxWidth);
+
+      const lineHeight = Math.round(fs * 1.25);
+      let ty = y + paddingY;
+      for (const line of lines){
+        if (ty + lineHeight > y + h - paddingY) break; // clip
+        octx.fillText(line, x + paddingX, ty);
+        ty += lineHeight;
+      }
+    }
+
+    const nameBase = current.fileName || 'annotiert';
+    const stamp = new Date().toISOString().slice(0,10);
+    const fileName = `${nameBase}_annotiert_${stamp}.jpg`;
+
+    out.toBlob((blob) => {
+      if (!blob) return;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+    }, 'image/jpeg', 0.92);
+  });
+
+  // Helpers
+  function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+  function hexToRgba(hex, alpha){
+    const h = hex.replace('#','').trim();
+    const full = h.length === 3 ? h.split('').map(c=>c+c).join('') : h;
+    const n = parseInt(full, 16);
+    const r = (n >> 16) & 255;
+    const g = (n >> 8) & 255;
+    const b = n & 255;
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+  function roundRect(ctx, x, y, w, h, r){
+    const rr = Math.min(r, w/2, h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+rr, y);
+    ctx.arcTo(x+w, y, x+w, y+h, rr);
+    ctx.arcTo(x+w, y+h, x, y+h, rr);
+    ctx.arcTo(x, y+h, x, y, rr);
+    ctx.arcTo(x, y, x+w, y, rr);
+    ctx.closePath();
+  }
+  function wrapText(ctx, text, maxWidth){
+    const raw = (text || '').replace(/\r/g,'').split('\n');
+    const lines = [];
+    for (const para of raw){
+      const words = para.split(' ');
+      let line = '';
+      for (const word of words){
+        const test = line ? line + ' ' + word : word;
+        if (ctx.measureText(test).width <= maxWidth){
+          line = test;
+        } else {
+          if (line) lines.push(line);
+          // if a single word is longer than maxWidth, hard-split
+          if (ctx.measureText(word).width > maxWidth){
+            lines.push(...hardSplit(ctx, word, maxWidth));
+            line = '';
+          } else {
+            line = word;
+          }
+        }
+      }
+      lines.push(line);
+    }
+    return lines;
+  }
+  function hardSplit(ctx, word, maxWidth){
+    const out = [];
+    let chunk = '';
+    for (const ch of word){
+      const test = chunk + ch;
+      if (ctx.measureText(test).width <= maxWidth){
+        chunk = test;
+      } else {
+        if (chunk) out.push(chunk);
+        chunk = ch;
+      }
+    }
+    if (chunk) out.push(chunk);
+    return out;
+  }
+
+  // initial
+  setEnabled(false);
+  applyZoom();
+})();
+</script>
+</body>
+</html>
