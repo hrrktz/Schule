@@ -1,698 +1,646 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Interaktives Arbeitsblatt – Annotator</title>
-  <style>
-    :root{
-      --bg:#f4f7f6; --fg:#1f2a33; --muted:#6b7b88; --card:#ffffff;
-      --accent:#27ae60; --line:#d7dde2;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:var(--bg); color:var(--fg);
-    }
-    header{
-      padding:14px 18px; background:#2c3e50; color:#fff; display:flex; gap:12px; align-items:center; flex-wrap:wrap;
-    }
-    header h1{font-size:16px; margin:0; font-weight:600}
-    .bar{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-    .btn{
-      border:1px solid rgba(255,255,255,.25);
-      background:rgba(255,255,255,.12);
-      color:#fff; padding:8px 10px; border-radius:10px; cursor:pointer;
-      font-weight:600; font-size:13px;
-    }
-    .btn:hover{background:rgba(255,255,255,.18)}
-    .btn.secondary{border-color:rgba(255,255,255,.18); background:rgba(0,0,0,.08)}
-    .btn.danger{border-color:rgba(255,255,255,.25); background:rgba(231,76,60,.20)}
-    .btn:disabled{opacity:.45; cursor:not-allowed}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Handeln Menschen immer rational? – Stationenlernen</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --paper: #faf7f2;
+    --accent: #c85a2a;
+    --accent2: #2a6c8a;
+    --accent3: #4a7c59;
+    --muted: #6b6460;
+    --rule: #d4c9be;
+    --intro: #8b5e3c;
+    --station2: #2a6c8a;
+    --station3: #4a7c59;
+    --station4: #7b4ea0;
+    --correct: #2d6a4f;
+    --wrong: #9b2335;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Source Serif 4', Georgia, serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
 
-    main{padding:14px; max-width:1200px; margin:0 auto;}
-    .layout{display:grid; grid-template-columns: 320px 1fr; gap:14px}
-    @media (max-width: 980px){ .layout{grid-template-columns:1fr} }
+  /* HEADER */
+  .site-header {
+    background: var(--ink); color: var(--paper);
+    padding: 2rem 2.5rem 1.5rem; position: relative; overflow: hidden;
+  }
+  .site-header::before {
+    content: ''; position: absolute; top:0;left:0;right:0;bottom:0;
+    background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,0.02) 2px,rgba(255,255,255,0.02) 4px);
+    pointer-events: none;
+  }
+  .header-kurs { font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 0.5rem; }
+  .header-title { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem,4vw,2.4rem); font-weight: 900; line-height: 1.1; margin-bottom: 0.5rem; }
+  .header-sub { font-size: 0.9rem; color: rgba(255,255,255,0.65); font-style: italic; }
+  .header-meta { display: flex; gap: 1.5rem; margin-top: 1.2rem; flex-wrap: wrap; }
+  .meta-tag { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.25rem 0.75rem; border: 1px solid rgba(255,255,255,0.25); border-radius: 2px; color: rgba(255,255,255,0.7); }
 
-    .panel{
-      background:var(--card); border:1px solid var(--line); border-radius:16px; padding:12px;
-      box-shadow:0 2px 8px rgba(0,0,0,.04);
-    }
-    .panel h2{font-size:14px; margin:0 0 10px 0}
-    label{font-size:12px; color:var(--muted); display:block; margin-top:10px}
-    input[type="file"]{width:100%}
-    input, select{
-      width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:12px;
-      font-size:13px; background:#fff;
-    }
-    .row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-    .hint{font-size:12px; color:var(--muted); line-height:1.35; margin-top:10px}
-    .tiny{font-size:11px; color:var(--muted)}
-    .hr{height:1px; background:var(--line); margin:12px 0}
+  /* NAV */
+  .station-nav { background: white; border-bottom: 2px solid var(--rule); padding: 0; position: sticky; top: 0; z-index: 100; display: flex; overflow-x: auto; }
+  .nav-btn { flex:1; min-width:110px; padding:0.9rem 1rem; border:none; background:none; font-family:'Source Serif 4',serif; font-size:0.8rem; color:var(--muted); cursor:pointer; border-bottom:3px solid transparent; transition:all 0.2s; display:flex; flex-direction:column; align-items:center; gap:0.25rem; }
+  .nav-btn:hover { background: #f5f0ea; }
+  .nav-btn.active { color: var(--ink); font-weight: 600; }
+  .nav-btn.active.intro { border-bottom-color: var(--intro); }
+  .nav-btn.active.s2 { border-bottom-color: var(--station2); }
+  .nav-btn.active.s3 { border-bottom-color: var(--station3); }
+  .nav-btn.active.s4 { border-bottom-color: var(--station4); }
+  .nav-dot { width:8px;height:8px;border-radius:50%;background:var(--rule); }
+  .nav-btn.active.intro .nav-dot { background: var(--intro); }
+  .nav-btn.active.s2 .nav-dot { background: var(--station2); }
+  .nav-btn.active.s3 .nav-dot { background: var(--station3); }
+  .nav-btn.active.s4 .nav-dot { background: var(--station4); }
+  .nav-label { font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em; }
 
-    /* Workspace */
-    .workspaceWrap{
-      background:var(--card); border:1px solid var(--line); border-radius:16px; padding:10px;
-      box-shadow:0 2px 8px rgba(0,0,0,.04);
-    }
-    .workspaceBar{
-      display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:6px 6px 10px 6px;
-      border-bottom:1px solid var(--line);
-    }
-    .chip{
-      padding:6px 10px; background:#eef3f0; border:1px solid #d6e8dd; border-radius:999px;
-      font-size:12px; color:#1f2a33;
-    }
-    .workspace{
-      position:relative;
-      width:100%;
-      height: calc(100vh - 220px);
-      min-height:520px;
-      overflow:auto;
-      background: repeating-conic-gradient(from 45deg, #fafafa 0% 25%, #f5f5f5 0% 50%) 50% / 20px 20px;
-      border-radius:12px;
-      padding:14px;
-    }
-    .stage{
-      position:relative;
-      display:inline-block;
-      transform-origin: top left;
-      /* stage size is set dynamically */
-    }
-    canvas#pageCanvas{
-      display:block;
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:10px;
-    }
+  /* PROGRESS */
+  .prog-track { display:flex;gap:0.3rem;height:3px;position:absolute;bottom:0;left:0;right:0; }
+  .prog-seg { flex:1;background:var(--rule);transition:background 0.3s; }
+  .prog-seg.done.intro { background: var(--intro); }
+  .prog-seg.done.s2 { background: var(--station2); }
+  .prog-seg.done.s3 { background: var(--station3); }
+  .prog-seg.done.s4 { background: var(--station4); }
 
-    /* Text boxes overlay */
-    .tbox{
-      position:absolute;
-      min-width:60px;
-      min-height:28px;
-      border:1px dashed rgba(39,174,96,.7);
-      border-radius:10px;
-      padding:6px 8px;
-      background:rgba(255,255,255,.80);
-      backdrop-filter: blur(2px);
-      cursor:move;
-      user-select:none;
-    }
-    .tbox.selected{
-      border-style:solid;
-      box-shadow:0 0 0 3px rgba(39,174,96,.20);
-    }
-    .tbox textarea{
-      width:100%; height:100%;
-      border:none; outline:none; resize:none;
-      background:transparent;
-      font:inherit;
-      color:inherit;
-      padding:0; margin:0;
-      user-select:text;
-    }
-    .handle{
-      position:absolute;
-      width:14px; height:14px;
-      right:-7px; bottom:-7px;
-      background:var(--accent);
-      border-radius:6px;
-      border:2px solid #fff;
-      cursor:nwse-resize;
-    }
-    .tbox .toolbar{
-      position:absolute;
-      left:8px; top:-34px;
-      display:none;
-      gap:6px;
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:6px;
-      box-shadow:0 6px 18px rgba(0,0,0,.10);
-    }
-    .tbox.selected .toolbar{display:flex}
-    .tmini{
-      font-size:12px;
-      border:1px solid var(--line);
-      background:#fff;
-      padding:6px 8px;
-      border-radius:10px;
-      cursor:pointer;
-    }
-    .tmini:hover{background:#f6f8fa}
-  </style>
+  /* MAIN */
+  .main { max-width:820px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+
+  /* PANELS */
+  .panel { display:none; animation: fadeIn 0.3s ease; }
+  .panel.active { display:block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  /* PANEL HEADER */
+  .panel-header { display:flex;align-items:flex-start;gap:1rem;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid var(--rule); }
+  .panel-number { font-family:'Playfair Display',serif;font-size:3rem;font-weight:900;line-height:1;flex-shrink:0; }
+  .intro .panel-number { color: var(--intro); }
+  .s2 .panel-number { color: var(--station2); }
+  .s3 .panel-number { color: var(--station3); }
+  .s4 .panel-number { color: var(--station4); }
+  .panel-title-block h2 { font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;line-height:1.2;margin-bottom:0.3rem; }
+  .panel-title-block p { font-size:0.85rem;color:var(--muted);font-style:italic; }
+
+  /* INTRO BOX */
+  .intro-box {
+    background: #fdf6ee;
+    border: 1px solid #e8d5b8;
+    border-left: 5px solid var(--intro);
+    border-radius: 0 6px 6px 0;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .intro-box h3 { font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:0.75rem;color:var(--intro); }
+  .intro-box p { font-size:0.92rem;line-height:1.75;margin-bottom:0.75rem; }
+  .intro-box p:last-child { margin-bottom:0; }
+  .intro-box strong { font-weight:600; }
+
+  /* SOURCE BLOCK */
+  .source-block { background:white;border-left:4px solid var(--rule);padding:1.25rem 1.5rem;margin-bottom:1.5rem;border-radius:0 4px 4px 0; }
+  .intro .source-block { border-left-color: var(--intro); }
+  .s2 .source-block { border-left-color: var(--station2); }
+  .s3 .source-block { border-left-color: var(--station3); }
+  .s4 .source-block { border-left-color: var(--station4); }
+  .source-label { font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;margin-bottom:0.75rem;display:flex;align-items:center;gap:0.5rem; }
+  .intro .source-label { color: var(--intro); }
+  .s2 .source-label { color: var(--station2); }
+  .s3 .source-label { color: var(--station3); }
+  .s4 .source-label { color: var(--station4); }
+  .source-block p { font-size:0.92rem;line-height:1.75;color:var(--ink); }
+  .source-block p+p { margin-top:0.75rem; }
+  .source-block strong { font-weight:600; }
+  .source-cite { font-size:0.72rem;color:var(--muted);font-style:italic;margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--rule); }
+
+  /* EXAMPLE BOX */
+  .example-box { background:#f0f4f8;border:1px solid #c8d8e8;border-radius:6px;padding:1rem 1.25rem;margin:0.75rem 0 1rem;font-size:0.88rem;line-height:1.6; }
+  .example-label { font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--accent2);margin-bottom:0.4rem; }
+
+  /* HEFT HINWEIS */
+  .heft-hint {
+    display:flex;align-items:flex-start;gap:0.75rem;
+    background:#fffbf0;border:1px solid #f0d070;border-radius:5px;
+    padding:0.75rem 1rem;margin:0.5rem 0 0.25rem;font-size:0.85rem;line-height:1.55;color:#6b5a10;
+  }
+  .heft-hint::before { content:'📓';font-size:1.1rem;flex-shrink:0;margin-top:0.05rem; }
+
+  /* TASKS */
+  .tasks-section { margin-top:2rem; }
+  .tasks-title { font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:0.5rem; }
+  .tasks-title::before { content:'Aufgaben';font-size:0.65rem;text-transform:uppercase;letter-spacing:0.12em;padding:0.2rem 0.6rem;border-radius:2px;font-family:'Source Serif 4',serif; }
+  .intro .tasks-title::before { background:var(--intro);color:white; }
+  .s2 .tasks-title::before { background:var(--station2);color:white; }
+  .s3 .tasks-title::before { background:var(--station3);color:white; }
+  .s4 .tasks-title::before { background:var(--station4);color:white; }
+
+  .task-item { margin-bottom:1.5rem;background:white;border:1px solid var(--rule);border-radius:6px;overflow:hidden; }
+  .task-header { display:flex;align-items:flex-start;gap:0.75rem;padding:1rem 1.25rem; }
+  .task-num { font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;flex-shrink:0;line-height:1.4; }
+  .intro .task-num { color:var(--intro); }
+  .s2 .task-num { color:var(--station2); }
+  .s3 .task-num { color:var(--station3); }
+  .s4 .task-num { color:var(--station4); }
+  .task-q { font-size:0.92rem;line-height:1.6;color:var(--ink); }
+  .task-afb { font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;padding:0.15rem 0.5rem;border-radius:2px;display:inline-block;margin-top:0.4rem;font-weight:600; }
+  .afb1 { background:#e8f5e9;color:#2d6a4f; }
+  .afb2 { background:#e3f2fd;color:#1565c0; }
+  .afb3 { background:#fce4ec;color:#880e4f; }
+
+  /* MC */
+  .mc-options { padding:0 1.25rem 1rem;display:flex;flex-direction:column;gap:0.5rem; }
+  .mc-option { display:flex;align-items:center;gap:0.75rem;padding:0.65rem 1rem;border:1px solid var(--rule);border-radius:4px;cursor:pointer;transition:all 0.15s;font-size:0.88rem;background:var(--paper); }
+  .mc-option:hover { background:#f0f0e8;border-color:#b0a898; }
+  .mc-option.correct { background:#e8f5e9;border-color:var(--correct);color:var(--correct); }
+  .mc-option.wrong { background:#fce4ec;border-color:var(--wrong);color:var(--wrong); }
+  .mc-option input { accent-color:var(--accent2); }
+  .mc-feedback { padding:0 1.25rem 1rem;font-size:0.82rem;font-style:italic;color:var(--muted);display:none; }
+  .mc-feedback.show { display:block; }
+  .mc-feedback.correct-fb { color:var(--correct); }
+  .mc-feedback.wrong-fb { color:var(--wrong); }
+
+  /* MATCHING */
+  .matching-container { padding:0 1.25rem 1rem; }
+  .matching-row { display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;align-items:center; }
+  .matching-term { font-size:0.88rem;padding:0.5rem 0.75rem;background:var(--paper);border:1px solid var(--rule);border-radius:4px;font-weight:600; }
+  .matching-select { font-family:'Source Serif 4',serif;font-size:0.82rem;padding:0.5rem 0.75rem;border:1px solid var(--rule);border-radius:4px;background:white;color:var(--ink);cursor:pointer;width:100%; }
+  .matching-select:focus { outline:none;border-color:var(--accent2); }
+  .matching-select.correct { border-color:var(--correct);background:#e8f5e9; }
+  .matching-select.wrong { border-color:var(--wrong);background:#fce4ec; }
+
+  /* NAV ACTIONS */
+  .nav-actions { display:flex;justify-content:space-between;margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid var(--rule); }
+  .nav-action-btn { font-family:'Source Serif 4',serif;font-size:0.85rem;padding:0.65rem 1.5rem;border:1px solid var(--rule);border-radius:3px;background:white;cursor:pointer;transition:all 0.15s;color:var(--ink); }
+  .nav-action-btn:hover { background:var(--ink);color:white;border-color:var(--ink); }
+  .nav-action-btn.primary { background:var(--ink);color:white;border-color:var(--ink); }
+  .nav-action-btn.primary:hover { background:var(--accent2);border-color:var(--accent2); }
+  .nav-action-btn:disabled { opacity:0.3;cursor:not-allowed; }
+  .nav-action-btn:disabled:hover { background:white;color:var(--ink);border-color:var(--rule); }
+
+  /* COMPLETION */
+  .completion-screen { display:none;text-align:center;padding:3rem 1rem; }
+  .completion-screen.show { display:block; }
+  .completion-icon { font-size:3rem;margin-bottom:1rem; }
+  .completion-screen h2 { font-family:'Playfair Display',serif;font-size:1.8rem;margin-bottom:1rem; }
+  .completion-screen p { font-size:0.95rem;color:var(--muted);max-width:500px;margin:0 auto 1.5rem;line-height:1.7;font-style:italic; }
+
+  @media(max-width:600px){
+    .matching-row { grid-template-columns:1fr; }
+    .panel-header { flex-direction:column; }
+    .panel-number { font-size:2rem; }
+  }
+</style>
 </head>
-
 <body>
-<header>
-  <h1>Arbeitsblatt-Annotator (Bild/PDF → Textfelder → Export als JPEG)</h1>
-  <div class="bar">
-    <button class="btn" id="btnAddText" disabled>+ Textfeld</button>
-    <button class="btn secondary" id="btnExportJpg" disabled>Export JPEG</button>
-    <button class="btn danger" id="btnClear" disabled>Alles löschen</button>
+
+<header class="site-header">
+  <div class="header-kurs">Sozialwissenschaften · EF · Stationenlernen</div>
+  <h1 class="header-title">Handeln Menschen immer rational?</h1>
+  <div class="header-sub">Güterknappheit · Ökonomisches Prinzip · Modelle · Homo oeconomicus</div>
+  <div class="header-meta">
+    <span class="meta-tag">Einleitung + 3 Stationen</span>
+    <span class="meta-tag">Einzelarbeit</span>
+    <span class="meta-tag">ca. 60 Minuten</span>
+    <span class="meta-tag">Buch S. 281–284</span>
   </div>
 </header>
 
-<main>
-  <div class="layout">
-    <section class="panel">
-      <h2>Datei laden</h2>
+<nav class="station-nav" id="stationNav" style="position:relative">
+  <div class="prog-track">
+    <div class="prog-seg intro" id="seg0"></div>
+    <div class="prog-seg s2"    id="seg2"></div>
+    <div class="prog-seg s3"    id="seg3"></div>
+    <div class="prog-seg s4"    id="seg4"></div>
+  </div>
+  <button class="nav-btn intro active" onclick="showPanel('intro')">
+    <div class="nav-dot"></div>
+    <span class="nav-label">Einleitung</span>
+    <span style="font-size:0.78rem">Knappheit</span>
+  </button>
+  <button class="nav-btn s2" onclick="showPanel('s2')">
+    <div class="nav-dot"></div>
+    <span class="nav-label">Station 1</span>
+    <span style="font-size:0.78rem">Ökon. Prinzip</span>
+  </button>
+  <button class="nav-btn s3" onclick="showPanel('s3')">
+    <div class="nav-dot"></div>
+    <span class="nav-label">Station 2</span>
+    <span style="font-size:0.78rem">Modelle</span>
+  </button>
+  <button class="nav-btn s4" onclick="showPanel('s4')">
+    <div class="nav-dot"></div>
+    <span class="nav-label">Station 3</span>
+    <span style="font-size:0.78rem">Homo oec.</span>
+  </button>
+</nav>
 
-      <label>Datei (JPEG/PNG oder PDF)</label>
-      <input type="file" id="fileInput" accept="image/*,application/pdf" />
+<main class="main">
 
-      <div class="row">
-        <div>
-          <label>PDF-Seite</label>
-          <input type="number" id="pdfPage" min="1" value="1" disabled />
+<!-- ══════════════════════════════════════════ EINLEITUNG -->
+<section class="panel intro active" id="panelintro">
+  <div class="panel-header">
+    <div class="panel-number">↳</div>
+    <div class="panel-title-block">
+      <h2>Einleitung: Warum wirtschaften Menschen überhaupt?</h2>
+      <p>Güterknappheit als Ausgangspunkt allen Wirtschaftens – Buch S. 281–282</p>
+    </div>
+  </div>
+
+  <div class="intro-box">
+    <h3>Was du wissen musst: Güterknappheit</h3>
+    <p>Stell dir vor, du hast 20 Euro Taschengeld. Du möchtest dir neue Kopfhörer kaufen (50 Euro), ins Kino gehen (12 Euro) und noch ein neues Buch (15 Euro). Das Problem: Dein Geld reicht nicht für alles. Du musst dich entscheiden – du musst <strong>wirtschaften</strong>.</p>
+    <p>Genau das ist das Grundproblem der Wirtschaft: <strong>Güter und Ressourcen sind knapp</strong> – sie sind nicht in unbegrenzter Menge verfügbar. Gleichzeitig haben Menschen <strong>unbegrenzte Bedürfnisse</strong>. Aus diesem Widerspruch entsteht die Notwendigkeit zu wirtschaften.</p>
+    <p><strong>Knappheit</strong> bedeutet dabei nicht, dass ein Gut selten ist. Es bedeutet, dass es für den jeweiligen Zweck <strong>begrenzt verfügbar</strong> ist. Deshalb unterscheiden Ökonominnen und Ökonomen zwischen zwei Arten von Gütern:</p>
+    <p><strong>Freie Güter</strong> stehen in unbegrenzter Menge zur Verfügung und kosten nichts – zum Beispiel Atemluft oder Sonnenlicht.<br>
+    <strong>Knappe Güter</strong> sind begrenzt verfügbar und erfordern Wirtschaften – zum Beispiel Benzin, Wasser in Flaschen oder Wohnraum in Großstädten.</p>
+  </div>
+
+  <div class="source-block">
+    <div class="source-label">▸ Fallbeispiel – Wasser: vom freien zum knappen Gut</div>
+    <p>Wasser schien in Deutschland immer im Überfluss vorhanden zu sein. Aber gilt das immer noch? 1.480 Bürgermeisterinnen und Bürgermeister haben teils dramatische Antworten übermittelt: „Einige Gemeinden müssen mit Wassertankfahrzeugen versorgt werden", schreibt ein Mitarbeiter eines Zweckverbandes aus Thüringen.</p>
+    <p>Wasserknappheit stellen insgesamt 57 Prozent der Kommunen fest. In den vergangenen zehn Jahren haben Versorgungsunternehmen 400 Millionen Euro für Klimaanpassungskosten ausgegeben. Für die nächsten zehn Jahre erwarten sie Kosten von 1,2 Milliarden Euro – dreimal so viel.</p>
+    <div class="example-box">
+      <div class="example-label">Zum Vergleich: Sauerstoff</div>
+      Der Sauerstoff, den wir zum Atmen brauchen, ist ein <strong>freies Gut</strong> – er kostet nichts und steht jedem zur Verfügung. Sauerstoff in Tauchflaschen dagegen ist ein <strong>knappes Gut</strong>: Er muss aufwändig abgefüllt werden und hat einen Preis.
+    </div>
+    <div class="source-cite">Hagemann, Ulrich / Rademacher, Olivia: „Wasserknappheit in Deutschland". In: www.tagesschau.de, 2022</div>
+  </div>
+
+  <div class="tasks-section">
+    <div class="tasks-title"></div>
+
+    <div class="task-item">
+      <div class="task-header">
+        <div class="task-num">1.</div>
+        <div class="task-q">
+          Ordne zu: Was ist ein freies Gut – was ist ein knappes Gut?
+          <br><span class="task-afb afb1">AFB I – Darstellen</span>
         </div>
-        <div>
-          <label>Zoom (Anzeige)</label>
-          <select id="zoomSel" disabled>
-            <option value="0.75">75%</option>
-            <option value="1" selected>100%</option>
-            <option value="1.25">125%</option>
-            <option value="1.5">150%</option>
-            <option value="2">200%</option>
+      </div>
+      <div class="matching-container">
+        <div class="matching-row">
+          <div class="matching-term">Freies Gut</div>
+          <select class="matching-select" onchange="checkMatch(this,'A')">
+            <option value="">– bitte wählen –</option>
+            <option value="A">Steht unbegrenzt zur Verfügung, kostet nichts (z. B. Atemluft)</option>
+            <option value="B">Ist begrenzt verfügbar, erfordert Wirtschaften (z. B. Benzin)</option>
+            <option value="C">Wird nur vom Staat bereitgestellt</option>
+          </select>
+        </div>
+        <div class="matching-row">
+          <div class="matching-term">Knappes Gut</div>
+          <select class="matching-select" onchange="checkMatch(this,'B')">
+            <option value="">– bitte wählen –</option>
+            <option value="A">Steht unbegrenzt zur Verfügung, kostet nichts (z. B. Atemluft)</option>
+            <option value="B">Ist begrenzt verfügbar, erfordert Wirtschaften (z. B. Benzin)</option>
+            <option value="C">Wird nur von Unternehmen hergestellt</option>
           </select>
         </div>
       </div>
+    </div>
 
-      <div class="hr"></div>
-
-      <h2>Textfeld-Format</h2>
-      <div class="row">
-        <div>
-          <label>Schriftgröße (px)</label>
-          <input type="number" id="fontSize" min="10" max="60" value="16" />
-        </div>
-        <div>
-          <label>Schriftfarbe</label>
-          <input type="color" id="fontColor" value="#111111" />
+    <div class="task-item">
+      <div class="task-header">
+        <div class="task-num">2.</div>
+        <div class="task-q">
+          Wasser war in Deutschland lange ein freies Gut – heute wird es in vielen Regionen knapp. Erkläre in deinem Heft, was sich verändert hat und welche Konsequenz das für Verbraucherinnen und Verbraucher hat.
+          <br><span class="task-afb afb2">AFB II – Analysieren</span>
         </div>
       </div>
-
-      <label>Hintergrund der Box</label>
-      <input type="color" id="boxBg" value="#ffffff" />
-
-      <label>Deckkraft Box (0–1)</label>
-      <input type="number" id="boxAlpha" min="0" max="1" step="0.05" value="0.80" />
-
-      <div class="hint">
-        Bedienung:
-        <ul style="margin:8px 0 0 18px; padding:0">
-          <li>„+ Textfeld“ → klicken → Box erscheint. Doppelklick → Text bearbeiten.</li>
-          <li>Ziehen = verschieben. Ecke unten rechts = Größe ändern.</li>
-          <li>Box anklicken → kleines Menü: Duplizieren / Löschen.</li>
-          <li>PDF: Seite einstellen → Enter → rendern.</li>
-        </ul>
-      </div>
-
-      <div class="tiny" style="margin-top:10px">
-        Hinweis: Export ist ein <b>JPEG</b> mit eingebrannten Anmerkungen (für AirDrop/Abgabe).
-      </div>
-    </section>
-
-    <section class="workspaceWrap">
-      <div class="workspaceBar">
-        <span class="chip" id="statusChip">Keine Datei geladen</span>
-        <span class="chip" id="sizeChip">–</span>
-      </div>
-      <div class="workspace" id="workspace">
-        <div class="stage" id="stage">
-          <canvas id="pageCanvas"></canvas>
-          <!-- Text boxes are inserted here (absolute positioned) -->
-        </div>
-      </div>
-    </section>
+      <div class="heft-hint">Notiere deine Antwort im Heft. Nutze den Satzanfang: „Wasser wurde zum knappen Gut, weil … Das bedeutet für Verbraucherinnen und Verbraucher, dass …"</div>
+    </div>
   </div>
+<div class="nav-actions">
+    <button class="nav-action-btn" disabled>← Zurück</button>
+    <button class="nav-action-btn primary" onclick="goTo('s2')">Weiter zu Station 1 →</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ STATION 1: ÖKON. PRINZIP -->
+<section class="panel s2" id="panels2">
+  <div class="panel-header">
+    <div class="panel-number">01</div>
+    <div class="panel-title-block">
+      <h2>Was bedeutet das „ökonomische Prinzip"?</h2>
+      <p>Rational handeln – aber wie? – Buch S. 283, M10</p>
+    </div>
+  </div>
+
+  <div class="source-block">
+    <div class="source-label">▸ Text M10 – Was bedeutet das „ökonomische Prinzip"?</div>
+    <p>Um rational handeln zu können, müssen sich Wirtschaftssubjekte vergegenwärtigen, wie sie mit ihren Zielen und Mitteln umzugehen haben. Das Verhältnis zwischen den Zielen und Mitteln ist entscheidend. Beim Handeln nach dem ökonomischen Prinzip gibt es zwei Ausprägungen: <strong>Maximumprinzip</strong> und <strong>Minimumprinzip</strong>.</p>
+    <p>Nach dem <strong>Maximumprinzip</strong> handelt derjenige, der mit vorgegebenen Mitteln versucht, den größtmöglichen Nutzen zu erreichen. Nach dem <strong>Minimumprinzip</strong> handelt derjenige, der ein vorgegebenes Ziel mit einem möglichst geringen Einsatz an Mitteln zu erreichen versucht.</p>
+    <div class="example-box">
+      <div class="example-label">Beispiel – Herstellung eines Produkts</div>
+      Ein Unternehmen möchte ein bestimmtes Produkt auf den Markt bringen. Nach dem <strong>Maximumprinzip</strong> gestaltet es das Produkt so gut wie möglich mit den vorhandenen Mitteln. Nach dem <strong>Minimumprinzip</strong> versucht es, das Produkt mit möglichst geringem Aufwand an Zeit und Kosten herzustellen.
+      <br><br><em style="font-size:0.83rem;color:var(--muted)">Weitz, Bernd O. / Eckstein, Anja: VWL Grundwissen. 5. Auflage. Haufe 2019, S. 13f.</em>
+    </div>
+  </div>
+
+  <div class="tasks-section">
+    <div class="tasks-title"></div>
+
+    <div class="task-item">
+      <div class="task-header">
+        <div class="task-num">1.</div>
+        <div class="task-q">
+          Welches Prinzip wird hier beschrieben?
+          <br><em style="font-size:0.85rem;color:var(--muted)">"Eine Schülerin möchte die Klausur bestehen. Sie lernt nur so viel, wie dafür nötig ist."</em>
+          <br><span class="task-afb afb1">AFB I – Darstellen</span>
+        </div>
+      </div>
+      <div class="mc-options">
+        <label class="mc-option" onclick="checkMC(this,false,'mc1')">
+          <input type="radio" name="mc1"> Maximumprinzip – sie holt mit vorgegebenen Mitteln das Maximum heraus
+        </label>
+        <label class="mc-option" onclick="checkMC(this,true,'mc1')">
+          <input type="radio" name="mc1"> Minimumprinzip – sie erreicht ein vorgegebenes Ziel mit minimalem Mitteleinsatz
+        </label>
+        <label class="mc-option" onclick="checkMC(this,false,'mc1')">
+          <input type="radio" name="mc1"> Weder noch – das ist kein wirtschaftliches Verhalten
+        </label>
+      </div>
+      <div class="mc-feedback" id="mc1-fb"></div>
+    </div>
+
+    <div class="task-item">
+      <div class="task-header">
+        <div class="task-num">2.</div>
+        <div class="task-q">
+          Erfinde ein eigenes Alltagsbeispiel für das <strong>Maximumprinzip</strong> und notiere es im Heft. Formuliere einen vollständigen Satz.
+          <br><span class="task-afb afb1">AFB I – Darstellen</span>
+        </div>
+      </div>
+      <div class="heft-hint">Notiere im Heft: „Maximumprinzip: Mit … (Mittel) möchte ich … (Ziel) so gut wie möglich erreichen."</div>
+    </div>
+
+    <div class="task-item">
+      <div class="task-header">
+        <div class="task-num">3.</div>
+        <div class="task-q">
+          Sandra ist Krankenpflegerin und pendelt täglich 25 km zur Arbeit. In ihrem Dorf gibt es keine Busanbindung. Sie tankt jeden Monat für rund 150 Euro – vor drei Jahren waren es noch 90 Euro. Ihr Gehalt ist kaum gestiegen.
+          <br><br>Nach welchem ökonomischen Prinzip handelt Sandra, wenn sie jeden Morgen zur Arbeit fährt? Erkläre deine Antwort im Heft mit Bezug auf den Text.
+          <br><span class="task-afb afb2">AFB II – Analysieren</span>
+        </div>
+      </div>
+      <div class="heft-hint">Notiere im Heft: „Sandra handelt nach dem … -Prinzip, weil sie … Als Mittel hat sie … Ihr Ziel ist …"</div>
+    </div>
+
+    <div class="task-item">
+      <div class="task-header">
+        <div class="task-num">4.</div>
+        <div class="task-q">
+          Haben wir im Ultimatumspiel nach dem ökonomischen Prinzip gehandelt? Wähle die Aussage, die am besten passt.
+          <br><span class="task-afb afb2">AFB II – Analysieren</span>
+        </div>
+      </div>
+      <div class="mc-options">
+        <label class="mc-option" onclick="checkMC(this,false,'mc4')">
+          <input type="radio" name="mc4"> Ja – wir haben immer das Angebot angenommen, das uns den größten Geldbetrag brachte.
+        </label>
+        <label class="mc-option" onclick="checkMC(this,true,'mc4')">
+          <input type="radio" name="mc4"> Nein – manche haben unfaire Angebote abgelehnt, obwohl sie damit selbst nichts bekamen. Fairness war wichtiger als Nutzenmaximierung.
+        </label>
+        <label class="mc-option" onclick="checkMC(this,false,'mc4')">
+          <input type="radio" name="mc4"> Das Spiel hat nichts mit dem ökonomischen Prinzip zu tun.
+        </label>
+      </div>
+      <div class="mc-feedback" id="mc4-fb"></div>
+    </div>
+  </div>
+<div class="nav-actions">
+    <button class="nav-action-btn" onclick="goTo('intro')">← Einleitung</button>
+    <button class="nav-action-btn primary" onclick="goTo('s3')">Weiter zu Station 2 →</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ STATION 2: MODELLE -->
+<section class="panel s3" id="panels3">
+  <div class="panel-header">
+    <div class="panel-number">02</div>
+    <div class="panel-title-block">
+      <h2>Was ist eigentlich ein Modell?</h2>
+      <p>Modelle als Landkarten der Volkswirtschaftslehre – Buch S. 283, M11</p>
+    </div>
+  </div>
+
+  <div class="source-block">
+    <div class="source-label">▸ Text M11 – Wie fungieren Modelle als Landkarten der Volkswirtschaftslehre?</div>
+    <p>Modelle spielen in der Volkswirtschaftslehre, wie in allen Wissenschaften, eine wichtige Rolle. Vereinfacht gesprochen handelt es sich dabei um <strong>Landkarten, die es ermöglichen, sich in einer sehr komplexen ökonomischen Realität zurechtzufinden.</strong> Und ähnlich wie für Landkarten gilt auch für Modelle, dass keines für alle Bedürfnisse gleichermaßen geeignet ist.</p>
+    <p>So ist es für eine Autoreise von Frankfurt nach Hamburg am besten, wenn man eine gute Autobahnkarte mit einem kleinen Maßstab hat. Will man aber dieselbe Strecke mit dem Fahrrad bewältigen, ist man mit einer Wanderkarte mit großem Maßstab sehr viel besser bedient. Ob ein Modell gut oder schlecht ist, hängt also vor allem davon ab, ob es dem Anwender eine möglichst gute Einsicht in komplexe ökonomische Zusammenhänge vermitteln kann.</p>
+    <p>Dazu ist es unumgänglich, dass Modelle immer nur ein vereinfachtes Abbild der Realität darstellen. <strong>Vereinfachung ist dabei kein Nachteil, sondern gerade der Zweck eines Modells.</strong></p>
+    <div class="source-cite">Bofinger, Peter: Grundzüge der Volkswirtschaftslehre. 5. Auflage. München: Pearson Deutschland 2019, S. 31</div>
+  </div>
+
+  <div class="tasks-section">
+    <div class="tasks-title"></div>
+
+    <div class="task-item">
+      <div class="task-header">
+        <div class="task-num">1.</div>
+        <div class="task-q">
+          Erkläre das Bild „Modell = Landkarte" in deinem Heft in eigenen Worten. Was haben Modelle und Landkarten gemeinsam?
+          <br><span class="task-afb afb1">AFB I – Darstellen</span>
+        </div>
+      </div>
+      <div class="heft-hint">Notiere im Heft: „Modelle und Landkarten haben gemeinsam, dass sie … Sie vereinfachen die Realität, weil …"</div>
+    </div>
+
+    <div class="task-item">
+      <div class="task-header">
+        <div class="task-num">2.</div>
+        <div class="task-q">
+          Welche Aussage über Modelle ist laut Text richtig?
+          <br><span class="task-afb afb1">AFB I – Darstellen</span>
+        </div>
+      </div>
+      <div class="mc-options">
+        <label class="mc-option" onclick="checkMC(this,false,'mc2')">
+          <input type="radio" name="mc2"> Ein gutes Modell bildet die Realität so vollständig wie möglich ab.
+        </label>
+        <label class="mc-option" onclick="checkMC(this,false,'mc2')">
+          <input type="radio" name="mc2"> Vereinfachung ist ein Nachteil von Modellen und sollte vermieden werden.
+        </label>
+        <label class="mc-option" onclick="checkMC(this,true,'mc2')">
+          <input type="radio" name="mc2"> Vereinfachung ist der Zweck eines Modells – nicht sein Fehler.
+        </label>
+      </div>
+      <div class="mc-feedback" id="mc2-fb"></div>
+    </div>
+
+    <div class="task-item">
+      <div class="task-header">
+        <div class="task-num">3.</div>
+        <div class="task-q">
+          Was folgt daraus für den Homo oeconomicus? Formuliere im Heft einen Satz, der erklärt, warum es kein Problem ist, dass das Modell die Realität vereinfacht.
+          <br><span class="task-afb afb2">AFB II – Analysieren</span>
+        </div>
+      </div>
+      <div class="heft-hint">Notiere im Heft: „Dass der Homo oeconomicus die Realität vereinfacht, ist kein grundsätzliches Problem, weil …"</div>
+    </div>
+  </div>
+<div class="nav-actions">
+    <button class="nav-action-btn" onclick="goTo('s2')">← Station 1</button>
+    <button class="nav-action-btn primary" onclick="goTo('s4')">Weiter zu Station 3 →</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ STATION 3: HOMO OECONOMICUS -->
+<section class="panel s4" id="panels4">
+  <div class="panel-header">
+    <div class="panel-number">03</div>
+    <div class="panel-title-block">
+      <h2>Der Homo oeconomicus – nützliches Modell oder falsches Menschenbild?</h2>
+      <p>Das wichtigste Modell der Wirtschaftswissenschaften – Buch S. 283–284, M12+M13</p>
+    </div>
+  </div>
+
+  <div class="source-block">
+    <div class="source-label">▸ Text M12 – Das ökonomische Modell des „Homo oeconomicus"</div>
+    <p>Der „Homo oeconomicus" ist ein gedankliches Modell aus der Wirtschaftstheorie. Er beschreibt einen Menschen, der</p>
+    <p><strong>a) rein wirtschaftlich denkt,<br>b) uneingeschränkt rational handelt,<br>c) ausschließlich den eigenen Nutzen maximieren will.</strong></p>
+    <p>Diese Vorstellung soll dabei helfen, einfache wirtschaftliche Vorgänge (Kauf, Verkauf, Produktion, Konsum usw.) zu erklären. Dabei wird ganz bewusst auf die Berücksichtigung vieler realer Einflussfaktoren auf das tatsächliche Kaufverhalten – wie Alter, Einkommen, Stimmung oder Dringlichkeit – verzichtet, um allgemeine wirtschaftliche Gesetzmäßigkeiten beschreiben zu können.</p>
+    <p>Der „Homo oeconomicus" beschreibt also nicht das Verhalten einer einzelnen Person, sondern erklärt, wie sich bei Betrachtung einer sehr großen Zahl von Fällen die Mehrheit der Käufer verhalten würde.</p>
+    <div class="source-cite">Wochenschau Verlag: 63. Jahrgang, September/Oktober 2012, 2. akt. Auflage 2016, S. 9</div>
+  </div>
+
+  <div class="source-block">
+    <div class="source-label">▸ Text M13 – Der Homo oeconomicus in der Kontroverse</div>
+    <p><strong>Position A – Das Modell sollte ersetzt werden (Singer, 2013):</strong><br>
+    Es ist an der Zeit, den Bezugsrahmen des Homo oeconomicus durch ein Modell zu ersetzen, in dem sich die Fähigkeit zu Altruismus und positivem Sozialverhalten widerspiegelt. Neue Entwicklungen in der Psychologie und Anthropologie zeigen, dass Menschen durch prosoziale Präferenzen – wie Gerechtigkeit und die Sorge um das Wohl anderer – motiviert werden können. Menschen werden durch ihre Empathie oft dazu angetrieben, Hilfsbedürftigen zu helfen, selbst völlig Fremden.</p>
+    <p><strong>Position B – Das Modell ist ein gelungenes Analyseinstrument (Suchanek/Kerscher, 2022):</strong><br>
+    Das „Eigeninteresse" des Homo oeconomicus ist zunächst rein formal – es schließt keineswegs aus, dass im Eigeninteresse auch das schlichte Wohlergehen des Nächsten liegen kann. Handlungsgründe wie Werte oder Normen, der Wunsch nach Gerechtigkeit – all diese Effekte können gewichtige Anreize für bestimmtes Verhalten darstellen und sind im Modell nicht ausgeschlossen.</p>
+  </div>
+
+  <div class="tasks-section">
+    <div class="tasks-title"></div>
+
+    <div class="task-item">
+      <div class="task-header">
+        <div class="task-num">1.</div>
+        <div class="task-q">
+          Nenne die drei Kernannahmen des Homo oeconomicus (M12) in eigenen Worten und trage sie in dein Heft ein.
+          <br><span class="task-afb afb1">AFB I – Darstellen</span>
+        </div>
+      </div>
+      <div class="heft-hint">Notiere im Heft:<br>„Annahme 1: Der Homo oeconomicus denkt …<br>Annahme 2: Er handelt …<br>Annahme 3: Er will …"</div>
+    </div>
+
+    <div class="task-item">
+      <div class="task-header">
+        <div class="task-num">2.</div>
+        <div class="task-q">
+          Sandra pendelt täglich zur Arbeit und zahlt monatlich 150 Euro für Benzin – 60 Euro mehr als noch vor drei Jahren. Sie könnte theoretisch auf den Bus umsteigen, aber in ihrem Dorf fährt keiner. Sie tankt also weiter, obwohl es sie belastet.
+          <br><br>Würde der Homo oeconomicus genauso handeln wie Sandra? Vergleiche ihr Verhalten mit den drei Annahmen und notiere deine Antwort im Heft.
+          <br><span class="task-afb afb2">AFB II – Analysieren</span>
+        </div>
+      </div>
+      <div class="heft-hint">Notiere im Heft: „Sandra handelt bei Annahme … wie der Homo oeconomicus, weil … Bei Annahme … weicht sie ab, weil …"</div>
+    </div>
+
+    <div class="task-item">
+      <div class="task-header">
+        <div class="task-num">3.</div>
+        <div class="task-q">
+          Welche Aussage über das Modell wäre laut M13 <strong>falsch</strong>?
+          <br><span class="task-afb afb2">AFB II – Analysieren</span>
+        </div>
+      </div>
+      <div class="mc-options">
+        <label class="mc-option" onclick="checkMC(this,false,'mc3')">
+          <input type="radio" name="mc3"> Position A kritisiert, dass das Modell Mitgefühl und soziales Verhalten nicht berücksichtigt.
+        </label>
+        <label class="mc-option" onclick="checkMC(this,true,'mc3')">
+          <input type="radio" name="mc3"> Position B sagt, das Modell sei nutzlos, weil es Eigeninteresse zu stark betont.
+        </label>
+        <label class="mc-option" onclick="checkMC(this,false,'mc3')">
+          <input type="radio" name="mc3"> Position B sagt, Eigeninteresse kann auch das Wohlergehen anderer einschließen.
+        </label>
+      </div>
+      <div class="mc-feedback" id="mc3-fb"></div>
+    </div>
+
+    <div class="task-item">
+      <div class="task-header">
+        <div class="task-num">4.</div>
+        <div class="task-q">
+          Beurteile das Modell des Homo oeconomicus nach zwei Kriterien. Notiere dein Urteil im Heft.<br><br>
+          <strong>Effizienz:</strong> Wie gut erklärt das Modell menschliches Verhalten – zum Beispiel das von Sandra oder dein eigenes im Ultimatumspiel?<br>
+          <strong>Legitimität:</strong> Ist es akzeptabel, ein Menschenbild zu verwenden, das Emotionen und soziale Motive ausblendet?
+          <br><span class="task-afb afb3">AFB III – Beurteilen</span>
+        </div>
+      </div>
+      <div class="heft-hint">Notiere im Heft:<br>„Effizienz: Das Modell erklärt menschliches Verhalten … gut / teilweise / wenig, weil …<br>Legitimität: Das Menschenbild ist … akzeptabel / problematisch, weil …"</div>
+    </div>
+  </div>
+<div class="nav-actions">
+    <button class="nav-action-btn" onclick="goTo('s3')">← Station 2</button>
+    <button class="nav-action-btn primary" onclick="showCompletion()">Stationenlernen abschließen ✓</button>
+  </div>
+</section>
+
+<!-- COMPLETION -->
+<div class="completion-screen" id="completionScreen">
+  <div class="completion-icon">✓</div>
+  <h2>Stationenlernen abgeschlossen</h2>
+  <p>Du hast alle Stationen bearbeitet. Vergleiche deine Heft-Antworten jetzt mit deiner Partnerin oder deinem Partner – besonders die Aufgaben zu AFB II und III.</p>
+  <p style="margin-top:1rem;font-weight:600;font-style:normal;color:var(--ink)">Für die Plenumsdiskussion: Bereite dein Urteil aus Station 3, Aufgabe 4 vor – Effizienz und Legitimität des Homo oeconomicus.</p>
+</div>
+
 </main>
 
-<!-- PDF.js (CDN). Wenn du offline willst: lokal hosten. -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.js"></script>
 <script>
-(() => {
-  const fileInput = document.getElementById('fileInput');
-  const pdfPageInput = document.getElementById('pdfPage');
-  const zoomSel = document.getElementById('zoomSel');
+  const segMap = { intro:'seg0', s2:'seg2', s3:'seg3', s4:'seg4' };
+  const btnMap = { intro:0, s2:1, s3:2, s4:3 };
 
-  const btnAddText = document.getElementById('btnAddText');
-  const btnExportJpg = document.getElementById('btnExportJpg');
-  const btnClear = document.getElementById('btnClear');
+  function showPanel(id) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('completionScreen').classList.remove('show');
 
-  const statusChip = document.getElementById('statusChip');
-  const sizeChip = document.getElementById('sizeChip');
+    const panel = document.getElementById('panel' + id);
+    if (panel) panel.classList.add('active');
 
-  const fontSizeEl = document.getElementById('fontSize');
-  const fontColorEl = document.getElementById('fontColor');
-  const boxBgEl = document.getElementById('boxBg');
-  const boxAlphaEl = document.getElementById('boxAlpha');
+    const seg = document.getElementById(segMap[id]);
+    if (seg) seg.classList.add('done');
 
-  const stage = document.getElementById('stage');
-  const canvas = document.getElementById('pageCanvas');
-  const ctx = canvas.getContext('2d', { alpha: false });
+    const btns = document.querySelectorAll('.nav-btn');
+    if (btns[btnMap[id]]) btns[btnMap[id]].classList.add('active');
 
-  const workspace = document.getElementById('workspace');
-
-  let current = {
-    kind: null,           // 'image' | 'pdf'
-    fileName: null,
-    image: null,          // HTMLImageElement
-    pdf: null,            // pdfjs doc
-    pdfPage: 1,
-    pdfScale: 1,
-    baseWidth: 0,
-    baseHeight: 0
-  };
-
-  // Configure PDF.js worker
-  if (window['pdfjsLib']) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.js";
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function setEnabled(enabled){
-    btnAddText.disabled = !enabled;
-    btnExportJpg.disabled = !enabled;
-    btnClear.disabled = !enabled;
-    zoomSel.disabled = !enabled;
+  function goTo(id) { showPanel(id); }
+
+  function showCompletion() {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('completionScreen').classList.add('show');
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    Object.values(segMap).forEach(id => { const s = document.getElementById(id); if(s) s.classList.add('done'); });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function clearTextBoxes(){
-    [...stage.querySelectorAll('.tbox')].forEach(el => el.remove());
-  }
-
-  function setStageSize(w, h){
-    current.baseWidth = w;
-    current.baseHeight = h;
-    canvas.width = w;
-    canvas.height = h;
-    stage.style.width = w + 'px';
-    stage.style.height = h + 'px';
-    sizeChip.textContent = `${w} × ${h}px`;
-  }
-
-  function applyZoom(){
-    const z = parseFloat(zoomSel.value || '1');
-    stage.style.transform = `scale(${z})`;
-    // workspace scroll still works; scale only visual
-  }
-
-  zoomSel.addEventListener('change', applyZoom);
-
-  async function loadImage(file){
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.decoding = 'async';
-    img.onload = () => {
-      current.kind = 'image';
-      current.fileName = file.name.replace(/\.[^.]+$/, '');
-      current.image = img;
-      current.pdf = null;
-
-      setStageSize(img.naturalWidth, img.naturalHeight);
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      ctx.drawImage(img, 0, 0);
-
-      statusChip.textContent = `Bild: ${file.name}`;
-      pdfPageInput.disabled = true;
-      setEnabled(true);
-      applyZoom();
-      clearTextBoxes();
-      URL.revokeObjectURL(url);
-    };
-    img.onerror = () => {
-      statusChip.textContent = 'Fehler beim Laden des Bildes';
-      URL.revokeObjectURL(url);
-    };
-    img.src = url;
-  }
-
-  async function renderPdfPage(pageNumber){
-    if (!current.pdf) return;
-
-    const page = await current.pdf.getPage(pageNumber);
-    // Render at 1.5 for decent quality; you can change if you want larger export
-    const viewport = page.getViewport({ scale: 1.6 });
-    setStageSize(Math.floor(viewport.width), Math.floor(viewport.height));
-
-    const renderContext = { canvasContext: ctx, viewport };
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0,0,canvas.width, canvas.height);
-    await page.render(renderContext).promise;
-
-    statusChip.textContent = `PDF: ${current.fileName} (Seite ${pageNumber}/${current.pdf.numPages})`;
-    applyZoom();
-  }
-
-  async function loadPdf(file){
-    const buf = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-
-    current.kind = 'pdf';
-    current.fileName = file.name.replace(/\.[^.]+$/, '');
-    current.pdf = pdf;
-    current.image = null;
-
-    pdfPageInput.disabled = false;
-    pdfPageInput.max = pdf.numPages;
-    pdfPageInput.value = 1;
-    current.pdfPage = 1;
-
-    setEnabled(true);
-    clearTextBoxes();
-    await renderPdfPage(1);
-  }
-
-  fileInput.addEventListener('change', async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setEnabled(false);
-    statusChip.textContent = 'Lade…';
-
-    try{
-      if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')){
-        await loadPdf(file);
-      } else if (file.type.startsWith('image/')){
-        await loadImage(file);
-      } else {
-        statusChip.textContent = 'Dateityp nicht unterstützt (nur Bild oder PDF)';
-      }
-    } catch(err){
-      console.error(err);
-      statusChip.textContent = 'Fehler beim Laden';
+  function checkMC(el, isCorrect, groupId) {
+    el.closest('.task-item').querySelectorAll('.mc-option').forEach(o => o.classList.remove('correct','wrong'));
+    const fb = document.getElementById(groupId + '-fb');
+    if (isCorrect) {
+      el.classList.add('correct');
+      fb.textContent = '✓ Richtig!';
+      fb.className = 'mc-feedback show correct-fb';
+    } else {
+      el.classList.add('wrong');
+      fb.textContent = '✗ Nicht ganz – lies den Text nochmal und versuche es erneut.';
+      fb.className = 'mc-feedback show wrong-fb';
     }
-  });
-
-  pdfPageInput.addEventListener('change', async () => {
-    const p = Math.max(1, Math.min(parseInt(pdfPageInput.value || '1', 10), current.pdf?.numPages || 1));
-    pdfPageInput.value = p;
-    current.pdfPage = p;
-    clearTextBoxes(); // optional: Kommentare pro Seite speichern? (hier: reset)
-    await renderPdfPage(p);
-  });
-
-  // Textbox creation
-  function createTextBox(x, y, w=220, h=70, text=''){
-    const box = document.createElement('div');
-    box.className = 'tbox';
-    box.style.left = `${x}px`;
-    box.style.top = `${y}px`;
-    box.style.width = `${w}px`;
-    box.style.height = `${h}px`;
-
-    // style from settings
-    const fs = parseInt(fontSizeEl.value || '16', 10);
-    const fc = fontColorEl.value || '#111111';
-    const bg = boxBgEl.value || '#ffffff';
-    const a = Math.max(0, Math.min(1, parseFloat(boxAlphaEl.value || '0.8')));
-    box.style.color = fc;
-    box.style.fontSize = fs + 'px';
-    box.style.background = hexToRgba(bg, a);
-
-    const toolbar = document.createElement('div');
-    toolbar.className = 'toolbar';
-
-    const btnDup = document.createElement('button');
-    btnDup.type = 'button';
-    btnDup.className = 'tmini';
-    btnDup.textContent = 'Duplizieren';
-    btnDup.addEventListener('click', (ev) => {
-      ev.stopPropagation();
-      const r = box.getBoundingClientRect();
-      const st = stage.getBoundingClientRect();
-      const nx = (r.left - st.left) + 20;
-      const ny = (r.top - st.top) + 20;
-      const nb = createTextBox(nx, ny, box.offsetWidth, box.offsetHeight, textarea.value);
-      stage.appendChild(nb);
-      selectBox(nb);
-    });
-
-    const btnDel = document.createElement('button');
-    btnDel.type = 'button';
-    btnDel.className = 'tmini';
-    btnDel.textContent = 'Löschen';
-    btnDel.addEventListener('click', (ev) => {
-      ev.stopPropagation();
-      box.remove();
-    });
-
-    toolbar.appendChild(btnDup);
-    toolbar.appendChild(btnDel);
-
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.placeholder = 'Text…';
-    textarea.spellcheck = false;
-
-    // Start in "view" mode (disable pointer events on textarea until edit)
-    textarea.style.pointerEvents = 'none';
-
-    // edit on double click
-    box.addEventListener('dblclick', (ev) => {
-      ev.stopPropagation();
-      textarea.style.pointerEvents = 'auto';
-      textarea.focus();
-      textarea.setSelectionRange(textarea.value.length, textarea.value.length);
-    });
-    textarea.addEventListener('blur', () => {
-      textarea.style.pointerEvents = 'none';
-    });
-
-    // resize handle
-    const handle = document.createElement('div');
-    handle.className = 'handle';
-
-    box.appendChild(toolbar);
-    box.appendChild(textarea);
-    box.appendChild(handle);
-
-    // Select logic
-    box.addEventListener('pointerdown', (e) => {
-      e.stopPropagation();
-      selectBox(box);
-    });
-
-    // Drag move
-    let drag = null;
-    box.addEventListener('pointerdown', (e) => {
-      if (e.target === handle) return; // resizing handled separately
-      if (textarea.style.pointerEvents === 'auto') return; // editing
-      drag = {
-        startX: e.clientX,
-        startY: e.clientY,
-        origLeft: parseFloat(box.style.left),
-        origTop: parseFloat(box.style.top)
-      };
-      box.setPointerCapture(e.pointerId);
-    });
-    box.addEventListener('pointermove', (e) => {
-      if (!drag) return;
-      const dx = e.clientX - drag.startX;
-      const dy = e.clientY - drag.startY;
-      const nx = clamp(drag.origLeft + dx, 0, current.baseWidth - box.offsetWidth);
-      const ny = clamp(drag.origTop + dy, 0, current.baseHeight - box.offsetHeight);
-      box.style.left = nx + 'px';
-      box.style.top = ny + 'px';
-    });
-    box.addEventListener('pointerup', () => drag = null);
-    box.addEventListener('pointercancel', () => drag = null);
-
-    // Resize
-    let resize = null;
-    handle.addEventListener('pointerdown', (e) => {
-      e.stopPropagation();
-      resize = {
-        startX: e.clientX,
-        startY: e.clientY,
-        origW: box.offsetWidth,
-        origH: box.offsetHeight
-      };
-      handle.setPointerCapture(e.pointerId);
-    });
-    handle.addEventListener('pointermove', (e) => {
-      if (!resize) return;
-      const dx = e.clientX - resize.startX;
-      const dy = e.clientY - resize.startY;
-      const nw = clamp(resize.origW + dx, 60, current.baseWidth - parseFloat(box.style.left));
-      const nh = clamp(resize.origH + dy, 28, current.baseHeight - parseFloat(box.style.top));
-      box.style.width = nw + 'px';
-      box.style.height = nh + 'px';
-    });
-    handle.addEventListener('pointerup', () => resize = null);
-    handle.addEventListener('pointercancel', () => resize = null);
-
-    return box;
   }
 
-  function selectBox(box){
-    [...stage.querySelectorAll('.tbox')].forEach(b => b.classList.remove('selected'));
-    if (box) box.classList.add('selected');
-  }
-  stage.addEventListener('pointerdown', () => selectBox(null));
-
-  btnAddText.addEventListener('click', () => {
-    if (!current.baseWidth) return;
-    // Place near top-left visible area in workspace
-    const z = parseFloat(zoomSel.value || '1');
-    const wr = workspace.getBoundingClientRect();
-    const st = stage.getBoundingClientRect();
-    const vx = (workspace.scrollLeft) / z;
-    const vy = (workspace.scrollTop) / z;
-
-    const x = clamp(vx + 40, 0, current.baseWidth - 240);
-    const y = clamp(vy + 40, 0, current.baseHeight - 90);
-
-    const box = createTextBox(x, y);
-    stage.appendChild(box);
-    selectBox(box);
-  });
-
-  btnClear.addEventListener('click', async () => {
-    clearTextBoxes();
-    // keep page as is
-  });
-
-  // Export: draw canvas + all textboxes onto offscreen canvas, then download JPEG
-  btnExportJpg.addEventListener('click', () => {
-    if (!current.baseWidth) return;
-
-    const out = document.createElement('canvas');
-    out.width = current.baseWidth;
-    out.height = current.baseHeight;
-    const octx = out.getContext('2d', { alpha: false });
-
-    // base page
-    octx.fillStyle = "#ffffff";
-    octx.fillRect(0,0,out.width,out.height);
-    octx.drawImage(canvas, 0, 0);
-
-    // textboxes
-    const boxes = [...stage.querySelectorAll('.tbox')];
-    for (const box of boxes){
-      const x = parseFloat(box.style.left);
-      const y = parseFloat(box.style.top);
-      const w = box.offsetWidth;
-      const h = box.offsetHeight;
-
-      const style = getComputedStyle(box);
-      // background
-      octx.fillStyle = style.backgroundColor || 'rgba(255,255,255,0.8)';
-      roundRect(octx, x, y, w, h, 10);
-      octx.fill();
-
-      // border (subtle)
-      octx.strokeStyle = 'rgba(39,174,96,0.65)';
-      octx.lineWidth = 2;
-      roundRect(octx, x, y, w, h, 10);
-      octx.stroke();
-
-      // text
-      const ta = box.querySelector('textarea');
-      const text = ta?.value || '';
-      const fs = parseInt(style.fontSize || '16', 10);
-      octx.fillStyle = style.color || '#111';
-      octx.font = `${fs}px system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif`;
-      octx.textBaseline = 'top';
-
-      const paddingX = 8, paddingY = 6;
-      const maxWidth = w - paddingX*2;
-      const lines = wrapText(octx, text, maxWidth);
-
-      const lineHeight = Math.round(fs * 1.25);
-      let ty = y + paddingY;
-      for (const line of lines){
-        if (ty + lineHeight > y + h - paddingY) break; // clip
-        octx.fillText(line, x + paddingX, ty);
-        ty += lineHeight;
-      }
-    }
-
-    const nameBase = current.fileName || 'annotiert';
-    const stamp = new Date().toISOString().slice(0,10);
-    const fileName = `${nameBase}_annotiert_${stamp}.jpg`;
-
-    out.toBlob((blob) => {
-      if (!blob) return;
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(a.href), 1500);
-    }, 'image/jpeg', 0.92);
-  });
-
-  // Helpers
-  function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
-  function hexToRgba(hex, alpha){
-    const h = hex.replace('#','').trim();
-    const full = h.length === 3 ? h.split('').map(c=>c+c).join('') : h;
-    const n = parseInt(full, 16);
-    const r = (n >> 16) & 255;
-    const g = (n >> 8) & 255;
-    const b = n & 255;
-    return `rgba(${r},${g},${b},${alpha})`;
-  }
-  function roundRect(ctx, x, y, w, h, r){
-    const rr = Math.min(r, w/2, h/2);
-    ctx.beginPath();
-    ctx.moveTo(x+rr, y);
-    ctx.arcTo(x+w, y, x+w, y+h, rr);
-    ctx.arcTo(x+w, y+h, x, y+h, rr);
-    ctx.arcTo(x, y+h, x, y, rr);
-    ctx.arcTo(x, y, x+w, y, rr);
-    ctx.closePath();
-  }
-  function wrapText(ctx, text, maxWidth){
-    const raw = (text || '').replace(/\r/g,'').split('\n');
-    const lines = [];
-    for (const para of raw){
-      const words = para.split(' ');
-      let line = '';
-      for (const word of words){
-        const test = line ? line + ' ' + word : word;
-        if (ctx.measureText(test).width <= maxWidth){
-          line = test;
-        } else {
-          if (line) lines.push(line);
-          // if a single word is longer than maxWidth, hard-split
-          if (ctx.measureText(word).width > maxWidth){
-            lines.push(...hardSplit(ctx, word, maxWidth));
-            line = '';
-          } else {
-            line = word;
-          }
-        }
-      }
-      lines.push(line);
-    }
-    return lines;
-  }
-  function hardSplit(ctx, word, maxWidth){
-    const out = [];
-    let chunk = '';
-    for (const ch of word){
-      const test = chunk + ch;
-      if (ctx.measureText(test).width <= maxWidth){
-        chunk = test;
-      } else {
-        if (chunk) out.push(chunk);
-        chunk = ch;
-      }
-    }
-    if (chunk) out.push(chunk);
-    return out;
+  function checkMatch(el, correctVal) {
+    if (el.value === '') { el.className = 'matching-select'; return; }
+    el.classList.toggle('correct', el.value === correctVal);
+    el.classList.toggle('wrong', el.value !== correctVal);
   }
 
-  // initial
-  setEnabled(false);
-  applyZoom();
-})();
+  // init
+  document.getElementById('seg0').classList.add('done');
 </script>
 </body>
 </html>
